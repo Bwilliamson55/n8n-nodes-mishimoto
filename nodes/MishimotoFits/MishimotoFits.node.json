@@ -1,0 +1,13 @@
+{
+	"node": "n8n-nodes-mishimoto.MishimotoFits",
+	"nodeVersion": "0.1.0",
+	"codexVersion": "1.0",
+	"categories": ["Miscellaneous"],
+	"resources": {
+		"primaryDocumentation": [
+			{
+				"url": "https://mishimoto.com/fits/mcp"
+			}
+		]
+	}
+}
