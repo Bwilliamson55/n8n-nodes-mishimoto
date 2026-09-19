@@ -46,6 +46,8 @@ module.exports = {
 			rules: {
 				'n8n-nodes-base/node-resource-description-filename-against-convention': 'off',
 				'n8n-nodes-base/node-param-fixed-collection-type-unsorted-items': 'off',
+				// Official Mishimoto M mark is PNG (keep ®; do not redraw as SVG).
+				'n8n-nodes-base/node-class-description-icon-not-svg': 'off',
 			},
 		},
 	],

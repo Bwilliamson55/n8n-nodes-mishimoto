@@ -1,6 +1,10 @@
 # n8n-nodes-mishimoto
 
+<p align="left"><img src="nodes/MishimotoFits/mishimoto.png" alt="Mishimoto" width="96" height="96"></p>
+
 An n8n community node for the public [Mishimoto Fits MCP](https://mishimoto.com/fits/mcp). One node, six read-only fitment and catalog tools.
+
+This community node exists at the behest of Mishimoto. Mishimoto may require that it be taken down at any time. It is unofficial unless Mishimoto designates otherwise, is provided without warranty, and is not a substitute for a contract. It is not endorsed by Adobe or n8n.
 
 **US-only for now.** This is the US catalog and US fitment data. There is no store or region argument, and the production hostname does not make this a multi-store API. UK fitments are not included.
 

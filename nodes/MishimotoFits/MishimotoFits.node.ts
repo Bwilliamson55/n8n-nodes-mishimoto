@@ -51,7 +51,7 @@ export class MishimotoFits implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Mishimoto Fits',
 		name: 'mishimotoFits',
-		icon: 'file:mishimoto.svg',
+		icon: 'file:mishimoto.png',
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"]}}',
