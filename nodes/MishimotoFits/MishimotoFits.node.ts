@@ -89,6 +89,8 @@ export class MishimotoFits implements INodeType {
 				type: 'string',
 				default: '',
 				required: true,
+				placeholder: 'MMINT-CIV-16',
+				description: 'Mishimoto product SKU',
 				displayOptions: {
 					show: {
 						operation: [
@@ -103,8 +105,10 @@ export class MishimotoFits implements INodeType {
 				displayName: 'Year',
 				name: 'year',
 				type: 'number',
-				default: 0,
+				default: 2019,
 				required: true,
+				description: 'Vehicle model year',
+				typeOptions: { minValue: 1900 },
 				displayOptions: { show: { operation: ['get_products_for_vehicle'] } },
 			},
 			{
@@ -114,6 +118,7 @@ export class MishimotoFits implements INodeType {
 				default: '',
 				required: true,
 				placeholder: 'Subaru',
+				description: 'Vehicle make. Use List Vehicle Options for the exact spelling.',
 				displayOptions: { show: { operation: ['get_products_for_vehicle'] } },
 			},
 			{
@@ -123,6 +128,7 @@ export class MishimotoFits implements INodeType {
 				default: '',
 				required: true,
 				placeholder: 'WRX',
+				description: 'Vehicle model. Use List Vehicle Options for the exact spelling.',
 				displayOptions: { show: { operation: ['get_products_for_vehicle'] } },
 			},
 			{
@@ -130,6 +136,7 @@ export class MishimotoFits implements INodeType {
 				name: 'trim',
 				type: 'string',
 				default: '',
+				description: 'Optional vehicle trim. Empty results fall back to year/make/model.',
 				displayOptions: { show: { operation: ['get_products_for_vehicle'] } },
 			},
 			{
@@ -137,6 +144,7 @@ export class MishimotoFits implements INodeType {
 				name: 'engine',
 				type: 'string',
 				default: '',
+				description: 'Optional engine designation. Empty results fall back to year/make/model.',
 				displayOptions: { show: { operation: ['get_products_for_vehicle'] } },
 			},
 			{
@@ -144,6 +152,7 @@ export class MishimotoFits implements INodeType {
 				name: 'submodel',
 				type: 'string',
 				default: '',
+				description: 'Optional vehicle submodel',
 				displayOptions: { show: { operation: ['get_products_for_vehicle'] } },
 			},
 			{
@@ -151,14 +160,15 @@ export class MishimotoFits implements INodeType {
 				name: 'field',
 				type: 'options',
 				required: true,
+				description: 'Which vehicle field to list valid values for',
 				options: [
-					{ name: 'Year', value: 'year' },
+					{ name: 'Body Type', value: 'body_type_name' },
+					{ name: 'Engine', value: 'engine' },
 					{ name: 'Make', value: 'make' },
 					{ name: 'Model', value: 'model' },
 					{ name: 'Submodel', value: 'submodel' },
-					{ name: 'Body Type', value: 'body_type_name' },
-					{ name: 'Engine', value: 'engine' },
 					{ name: 'Trim', value: 'trim' },
+					{ name: 'Year', value: 'year' },
 				],
 				default: 'make',
 				displayOptions: { show: { operation: ['list_vehicle_options'] } },
@@ -168,6 +178,7 @@ export class MishimotoFits implements INodeType {
 				name: 'optionYear',
 				type: 'number',
 				default: 0,
+				description: 'Optional model year filter. Leave 0 to omit.',
 				displayOptions: { show: { operation: ['list_vehicle_options'] } },
 			},
 			{
@@ -175,6 +186,7 @@ export class MishimotoFits implements INodeType {
 				name: 'optionMake',
 				type: 'string',
 				default: '',
+				description: 'Optional make filter',
 				displayOptions: { show: { operation: ['list_vehicle_options'] } },
 			},
 			{
@@ -182,6 +194,7 @@ export class MishimotoFits implements INodeType {
 				name: 'optionModel',
 				type: 'string',
 				default: '',
+				description: 'Optional model filter',
 				displayOptions: { show: { operation: ['list_vehicle_options'] } },
 			},
 			{
@@ -190,14 +203,17 @@ export class MishimotoFits implements INodeType {
 				type: 'string',
 				default: '',
 				required: true,
+				placeholder: 'cold air intake',
+				description: 'Free-text catalog search',
 				displayOptions: { show: { operation: ['search_products'] } },
 			},
 			{
 				displayName: 'Limit',
 				name: 'limit',
 				type: 'number',
-				default: 0,
-				description: 'Leave 0 to use the MCP default',
+				default: 50,
+				description: 'Max number of results to return',
+				typeOptions: { minValue: 1 },
 				displayOptions: {
 					show: {
 						operation: [
@@ -213,6 +229,8 @@ export class MishimotoFits implements INodeType {
 				name: 'offset',
 				type: 'number',
 				default: 0,
+				description: 'Rows to skip for pagination',
+				typeOptions: { minValue: 0 },
 				displayOptions: {
 					show: {
 						operation: ['get_vehicles_for_product', 'get_products_for_vehicle'],
@@ -228,24 +246,32 @@ export class MishimotoFits implements INodeType {
 		const itemCount = Math.max(items.length, 1);
 
 		for (let i = 0; i < itemCount; i++) {
-			const operation = this.getNodeParameter('operation', i) as string;
-			const args = toolArgs(this, operation, i);
-			const response = await fitsToolsCall(this, operation, args);
-			const json = (response && typeof response === 'object'
-				? response
-				: { data: response }) as IDataObject;
-			returnData.push({ json, pairedItem: { item: i } });
+			try {
+				const operation = this.getNodeParameter('operation', i) as string;
+				const args = toolArgs(this, operation, i);
+				const response = await fitsToolsCall(this, operation, args);
+				const json = (
+					response && typeof response === 'object' ? response : { data: response }
+				) as IDataObject;
+				returnData.push({ json, pairedItem: { item: i } });
+			} catch (error) {
+				if (this.continueOnFail()) {
+					const message = error instanceof Error ? error.message : String(error);
+					returnData.push({
+						json: { error: message },
+						pairedItem: { item: i },
+					});
+					continue;
+				}
+				throw error;
+			}
 		}
 
 		return [returnData];
 	}
 }
 
-function toolArgs(
-	ef: IExecuteFunctions,
-	operation: string,
-	itemIndex: number,
-): IDataObject {
+function toolArgs(ef: IExecuteFunctions, operation: string, itemIndex: number): IDataObject {
 	if (operation === 'get_vehicles_for_product') {
 		return compactArgs({
 			sku: ef.getNodeParameter('sku', itemIndex, '') as string,
@@ -255,7 +281,7 @@ function toolArgs(
 	}
 	if (operation === 'get_products_for_vehicle') {
 		return compactArgs({
-			year: ef.getNodeParameter('year', itemIndex, 0) as number,
+			year: ef.getNodeParameter('year', itemIndex, 2019) as number,
 			make: ef.getNodeParameter('make', itemIndex, '') as string,
 			model: ef.getNodeParameter('model', itemIndex, '') as string,
 			trim: ef.getNodeParameter('trim', itemIndex, '') as string,
