@@ -1,62 +1,64 @@
 # n8n-nodes-mishimoto
 
-Community node for the public Mishimoto Fits MCP. One MCP POST helper, six read-only tools. List price only - no stock, MAP, or customer pricing.
+An n8n community node for the public [Mishimoto Fits MCP](https://mishimoto.com/fits/mcp). One node, six read-only fitment and catalog tools.
 
-Package name: `n8n-nodes-mishimoto`. Publish later as npm user `bwilliamson5509`. This repo is not on npm yet.
+[n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
 
-## Load in n8n (local, unpublished)
+Prices are catalog list prices only. The node does not return stock, MAP, or customer-specific pricing.
+
+## Installation
+
+Install from **Settings → Community Nodes** in n8n, or with npm:
 
 ```bash
-cd /path/to/n8n-nodes-mishimoto
-npm install --ignore-scripts
-npm run build
+npm install n8n-nodes-mishimoto
 ```
 
-`--ignore-scripts` is required on Node 20. `n8n-workflow` still pulls `isolated-vm`, which wants Node 22 for its native compile. Types and `tsc` work without that compile.
+See the [community nodes installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) for more detail.
 
-A live unauthenticated `tools/call` for `MMINT-CIV-16` was not run from this session. Confirm that against prod only after that class of request is approved.
+Restart n8n and search the node picker for **Mishimoto Fits**.
 
-Then either:
+## Operations
 
-1. **Custom extensions** - start n8n with the built folder:
+Each operation is one MCP `tools/call`. The node POSTs JSON-RPC to `https://mishimoto.com/fits/mcp` and returns the unwrapped `{ ok, ..., error? }` payload.
 
-   ```bash
-   N8N_CUSTOM_EXTENSIONS=/path/to/n8n-nodes-mishimoto n8n start
-   ```
+| Operation | MCP tool | Required fields |
+| --- | --- | --- |
+| Get Vehicles For Product | `get_vehicles_for_product` | SKU |
+| Get Products For Vehicle | `get_products_for_vehicle` | Year, Make, Model |
+| List Vehicle Options | `list_vehicle_options` | Field (`year`, `make`, `model`, `engine`, `trim`, …) |
+| Get Product Details | `get_product_details` | SKU |
+| Search Products | `search_products` | Query |
+| Get Related Content | `get_related_content` | SKU |
 
-2. **User nodes folder** (same pattern as `mishimoto-custom-n8n`):
-
-   ```bash
-   mkdir -p ~/.n8n/nodes
-   cd ~/.n8n/nodes
-   npm install /path/to/n8n-nodes-mishimoto
-   ```
-
-Restart n8n. Search the node picker for **Mishimoto Fits**. Add a **Mishimoto Fits MCP** credential (URL defaults to production; API key can stay blank).
-
-After npm publish, install from Settings > Community Nodes, then pin `n8n-nodes-mishimoto` in `mishimoto-custom-n8n/Dockerfile` next to the other community packages.
+Use **List Vehicle Options** for exact year/make/model/engine/trim spellings before **Get Products For Vehicle**. Trim, engine, and submodel are optional on that operation. If they yield no matches, results fall back to year/make/model.
 
 ## Credentials
 
-- **MCP URL** defaults to `https://mishimoto.com/fits/mcp` (alias `/mcp`).
-- **API key** is optional. Unauthenticated calls work now.
-- When Magento keys ship (MMP2-3485 / MMP2-3694), create or revoke them on the B2B developers page. Paste the Bearer secret here. Do not store a raw key anywhere else.
+Create a **Mishimoto Fits MCP API** credential.
 
-Every request sends `X-Mishi-Client: n8n`.
+- **MCP URL** defaults to production: `https://mishimoto.com/fits/mcp`
+- **API key** is optional. Leave it blank for anonymous access. If you have a key (`mm_live_…`), the node sends `Authorization: Bearer …`
 
-## Tools
+## Local development
 
-POSTs JSON-RPC `tools/call` and unwraps `result.content[0].text` to the `{ ok, ..., error? }` payload.
+```bash
+git clone https://github.com/Bwilliamson55/n8n-nodes-mishimoto.git
+cd n8n-nodes-mishimoto
+npm install
+npm run build
+```
 
-| Operation | Required fields |
-| --- | --- |
-| Get Vehicles For Product | SKU |
-| Get Products For Vehicle | Year, Make, Model |
-| List Vehicle Options | Field (`year` / `make` / `model` / …) |
-| Get Product Details | SKU |
-| Search Products | Query |
-| Get Related Content | SKU |
+Then load the built package into a local n8n:
 
-## Test
+```bash
+mkdir -p ~/.n8n/nodes
+cd ~/.n8n/nodes
+npm install /path/to/n8n-nodes-mishimoto
+```
 
-After load, Get Vehicles For Product with `MMINT-CIV-16` should unwrap to `{ ok, vehicles, ... }` (MCP `result.content[0].text`, not the JSON-RPC envelope). Live unauthenticated prod check is still open.
+Or start n8n with `N8N_CUSTOM_EXTENSIONS` pointed at the built folder. Restart n8n after install or rebuild.
+
+## License
+
+[MIT](LICENSE.md)
