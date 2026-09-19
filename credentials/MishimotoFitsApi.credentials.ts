@@ -11,7 +11,7 @@ import { applyFitsAuth, DEFAULT_MCP_URL } from './fitsAuth';
 export class MishimotoFitsApi implements ICredentialType {
 	name = 'mishimotoFitsApi';
 
-	displayName = 'Mishimoto Fits MCP API (US-only for now)';
+	displayName = 'Mishimoto Fits MCP (US-Only For Now) API';
 
 	documentationUrl = 'https://mishimoto.com/fits/mcp';
 
