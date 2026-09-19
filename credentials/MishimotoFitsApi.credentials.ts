@@ -11,7 +11,7 @@ import { applyFitsAuth, DEFAULT_MCP_URL } from './fitsAuth';
 export class MishimotoFitsApi implements ICredentialType {
 	name = 'mishimotoFitsApi';
 
-	displayName = 'Mishimoto Fits MCP API';
+	displayName = 'Mishimoto Fits MCP API (US-only for now)';
 
 	documentationUrl = 'https://mishimoto.com/fits/mcp';
 
@@ -23,7 +23,7 @@ export class MishimotoFitsApi implements ICredentialType {
 			default: DEFAULT_MCP_URL,
 			required: true,
 			description:
-				'Public Fits MCP endpoint (POST /fits/mcp, alias /mcp). Unauthenticated calls work now.',
+				'Public Fits MCP endpoint (POST /fits/mcp, alias /mcp). US catalog and US fitment only for now — no store or region argument. Unauthenticated calls work now.',
 		},
 		{
 			displayName: 'API Key',

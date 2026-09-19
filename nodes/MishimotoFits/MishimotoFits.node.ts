@@ -55,7 +55,7 @@ export class MishimotoFits implements INodeType {
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"]}}',
-		description: 'Call the public Mishimoto Fits MCP (six read-only tools)',
+		description: 'US catalog and US fitment only for now (six read-only Fits MCP tools)',
 		defaults: { name: 'Mishimoto Fits' },
 		inputs: ['main'],
 		outputs: ['main'],

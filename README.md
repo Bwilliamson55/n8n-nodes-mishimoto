@@ -2,6 +2,8 @@
 
 An n8n community node for the public [Mishimoto Fits MCP](https://mishimoto.com/fits/mcp). One node, six read-only fitment and catalog tools.
 
+**US-only for now.** This is the US catalog and US fitment data. There is no store or region argument, and the production hostname does not make this a multi-store API. UK fitments are not included.
+
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
 
 Prices are catalog list prices only. The node does not return stock, MAP, or customer-specific pricing.

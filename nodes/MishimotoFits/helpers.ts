@@ -10,6 +10,10 @@ import { NodeApiError, NodeOperationError } from 'n8n-workflow';
  *   success: { jsonrpc, id, result }
  *   rpc error: { jsonrpc, id, error: { code, message } }
  *   tools/call result: { content: [{ type: "text", text: "<json>" }], isError? }
+ *
+ * Public Fits MCP is US catalog and US fitment only for now. No store/region
+ * argument. UK fitments are excluded (region != 'gb'). Hostname does not make
+ * this a multi-store API.
  */
 export function unwrapMcpResponse(response: IDataObject): IDataObject {
 	const rpcError = response.error;
