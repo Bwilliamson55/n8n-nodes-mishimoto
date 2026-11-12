@@ -115,7 +115,6 @@ export class MishimotoFits implements INodeType {
 				options: [
 					{ name: 'US (Default)', value: 'default' },
 					{ name: 'UK', value: 'mishiuk_english' },
-					{ name: 'Borne', value: 'borne_store_view' },
 				],
 				default: 'default',
 				description:

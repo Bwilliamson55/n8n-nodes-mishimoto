@@ -11,8 +11,8 @@ import { NodeApiError, NodeOperationError } from 'n8n-workflow';
  *   rpc error: { jsonrpc, id, error: { code, message } }
  *   tools/call result: { content: [{ type: "text", text: "<json>" }], isError? }
  *
- * Tools take an optional `store` argument (default US, mishiuk_english,
- * borne_store_view). The hostname and API key are not stores.
+ * Tools take an optional `store` argument (default US, or mishiuk_english
+ * for UK). The hostname and API key are not stores.
  */
 export function unwrapMcpResponse(response: IDataObject): IDataObject {
 	const rpcError = response.error;

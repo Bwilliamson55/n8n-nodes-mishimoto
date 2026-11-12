@@ -6,7 +6,7 @@ An n8n community node for the public [Mishimoto Fits MCP](https://mishimoto.com/
 
 This community node exists at the behest of Mishimoto. Mishimoto may require that it be taken down at any time. It is unofficial unless Mishimoto designates otherwise, is provided without warranty, and is not a substitute for a contract. It is not endorsed by Adobe or n8n.
 
-**Store.** Catalog and fitment operations have a **Store** field: US (default), UK (`mishiuk_english`), or Borne (`borne_store_view`). US uses non-UK fitment and UK uses UK fitment. The hostname and API key never pick the store.
+**Store.** Catalog and fitment operations have a **Store** field: US (default) or UK (`mishiuk_english`). US uses non-UK fitment and UK uses UK fitment. The hostname and API key never pick the store.
 
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
 
