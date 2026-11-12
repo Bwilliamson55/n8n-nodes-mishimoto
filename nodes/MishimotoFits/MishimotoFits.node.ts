@@ -16,12 +16,6 @@ const TOOLS = [
 		action: 'Check fitment',
 	},
 	{
-		name: 'Get Order Tracking',
-		value: 'get_order_tracking',
-		description: 'Shipment tracking for an order (API key required)',
-		action: 'Get order tracking',
-	},
-	{
 		name: 'Get Product Availability',
 		value: 'get_product_availability',
 		description: 'In stock or not, with an ETA when there is one',
@@ -65,10 +59,8 @@ const TOOLS = [
 	},
 ] as const;
 
-/** Every tool except order tracking takes the store argument. */
-const STORE_OPERATIONS = TOOLS.map((tool) => tool.value).filter(
-	(value) => value !== 'get_order_tracking',
-);
+/** Every tool takes the store argument. */
+const STORE_OPERATIONS = TOOLS.map((tool) => tool.value);
 
 const SKU_OPERATIONS = [
 	'check_fitment',
@@ -88,7 +80,7 @@ export class MishimotoFits implements INodeType {
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"]}}',
-		description: 'Read-only Mishimoto fitment, catalog, availability, and order tracking (Fits MCP)',
+		description: 'Read-only Mishimoto fitment, catalog, and availability (Fits MCP)',
 		defaults: { name: 'Mishimoto Fits' },
 		inputs: ['main'],
 		outputs: ['main'],
@@ -249,53 +241,6 @@ export class MishimotoFits implements INodeType {
 				displayOptions: { show: { operation: ['search_products'] } },
 			},
 			{
-				displayName: 'Look Up By',
-				name: 'trackingLookup',
-				type: 'options',
-				options: [
-					{ name: 'Tracking Number', value: 'trackNo' },
-					{ name: 'Email and Order Number', value: 'emailOrder' },
-				],
-				default: 'emailOrder',
-				description: 'Same inputs as the public /track page. Requires an API key on the credential.',
-				displayOptions: { show: { operation: ['get_order_tracking'] } },
-			},
-			{
-				displayName: 'Tracking Number',
-				name: 'trackNo',
-				type: 'string',
-				default: '',
-				required: true,
-				description: 'Carrier tracking number',
-				displayOptions: {
-					show: { operation: ['get_order_tracking'], trackingLookup: ['trackNo'] },
-				},
-			},
-			{
-				displayName: 'Email',
-				name: 'email',
-				type: 'string',
-				placeholder: 'name@email.com',
-				default: '',
-				required: true,
-				description: 'Email on the order',
-				displayOptions: {
-					show: { operation: ['get_order_tracking'], trackingLookup: ['emailOrder'] },
-				},
-			},
-			{
-				displayName: 'Order Number',
-				name: 'orderRef',
-				type: 'string',
-				default: '',
-				required: true,
-				placeholder: '000123456',
-				description: 'Magento order number (increment ID)',
-				displayOptions: {
-					show: { operation: ['get_order_tracking'], trackingLookup: ['emailOrder'] },
-				},
-			},
-			{
 				displayName: 'Limit',
 				name: 'limit',
 				type: 'number',
@@ -360,17 +305,6 @@ export class MishimotoFits implements INodeType {
 }
 
 function toolArgs(ef: IExecuteFunctions, operation: string, itemIndex: number): IDataObject {
-	if (operation === 'get_order_tracking') {
-		const lookup = ef.getNodeParameter('trackingLookup', itemIndex, 'emailOrder') as string;
-		if (lookup === 'trackNo') {
-			return compactArgs({ track_no: ef.getNodeParameter('trackNo', itemIndex, '') as string });
-		}
-		return compactArgs({
-			email: ef.getNodeParameter('email', itemIndex, '') as string,
-			order_ref: ef.getNodeParameter('orderRef', itemIndex, '') as string,
-		});
-	}
-
 	// US is the server default, so 'default' is sent as no store at all.
 	const storeValue = ef.getNodeParameter('store', itemIndex, 'default') as string;
 	const store = storeValue === 'default' ? undefined : storeValue;

@@ -33,7 +33,7 @@ export class MishimotoFitsApi implements ICredentialType {
 			default: '',
 			required: false,
 			description:
-				'Bearer key (mm_live_…) from the Mishimoto B2B developers page. Optional for catalog and fitment, required for Get Order Tracking. A key also gets a higher rate limit.',
+				'Optional Bearer key (mm_live_…) from the Mishimoto B2B developers page. Leave blank for anonymous access. A key gets a higher rate limit.',
 		},
 	];
 
