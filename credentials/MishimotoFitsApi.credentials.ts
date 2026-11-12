@@ -11,7 +11,7 @@ import { applyFitsAuth, DEFAULT_MCP_URL } from './fitsAuth';
 export class MishimotoFitsApi implements ICredentialType {
 	name = 'mishimotoFitsApi';
 
-	displayName = 'Mishimoto Fits MCP (US-Only For Now) API';
+	displayName = 'Mishimoto Fits MCP API';
 
 	documentationUrl = 'https://mishimoto.com/fits/mcp';
 
@@ -23,7 +23,7 @@ export class MishimotoFitsApi implements ICredentialType {
 			default: DEFAULT_MCP_URL,
 			required: true,
 			description:
-				'Public Fits MCP endpoint (POST /fits/mcp, alias /mcp). US catalog and US fitment only for now — no store or region argument. Unauthenticated calls work now.',
+				'Public Fits MCP endpoint (POST /fits/mcp, alias /mcp). Pick the store on each operation, not here.',
 		},
 		{
 			displayName: 'API Key',
@@ -33,7 +33,7 @@ export class MishimotoFitsApi implements ICredentialType {
 			default: '',
 			required: false,
 			description:
-				'Optional Bearer key (mm_live_…). Leave blank until Magento keys exist. Keys will live on the B2B developers page when MMP2-3485 ships.',
+				'Bearer key (mm_live_…) from the Mishimoto B2B developers page. Optional for catalog and fitment, required for Get Order Tracking. A key also gets a higher rate limit.',
 		},
 	];
 

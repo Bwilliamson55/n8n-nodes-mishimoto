@@ -2,15 +2,15 @@
 
 <p align="left"><img src="nodes/MishimotoFits/mishimoto.png" alt="Mishimoto" width="96" height="96"></p>
 
-An n8n community node for the public [Mishimoto Fits MCP](https://mishimoto.com/fits/mcp). One node, six read-only fitment and catalog tools.
+An n8n community node for the public [Mishimoto Fits MCP](https://mishimoto.com/fits/mcp). One node, nine read-only tools for fitment, catalog, stock status, and order tracking.
 
 This community node exists at the behest of Mishimoto. Mishimoto may require that it be taken down at any time. It is unofficial unless Mishimoto designates otherwise, is provided without warranty, and is not a substitute for a contract. It is not endorsed by Adobe or n8n.
 
-**US-only for now.** This is the US catalog and US fitment data. There is no store or region argument, and the production hostname does not make this a multi-store API. UK fitments are not included.
+**Store.** Catalog and fitment operations have a **Store** field: US (default), UK (`mishiuk_english`), or Borne (`borne_store_view`). US uses non-UK fitment and UK uses UK fitment. The hostname and API key never pick the store.
 
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
 
-Prices are catalog list prices only. The node does not return stock, MAP, or customer-specific pricing.
+Prices are catalog list prices only, with no MAP or customer-specific pricing. Availability is in stock or not, with an ETA when there is one, never a quantity.
 
 ## Installation
 
@@ -28,23 +28,28 @@ Restart n8n and search the node picker for **Mishimoto Fits**.
 
 Each operation is one MCP `tools/call`. The node POSTs JSON-RPC to `https://mishimoto.com/fits/mcp` and returns the unwrapped `{ ok, ..., error? }` payload.
 
-| Operation | MCP tool | Required fields |
-| --- | --- | --- |
-| Get Vehicles For Product | `get_vehicles_for_product` | SKU |
-| Get Products For Vehicle | `get_products_for_vehicle` | Year, Make, Model |
-| List Vehicle Options | `list_vehicle_options` | Field (`year`, `make`, `model`, `engine`, `trim`, …) |
-| Get Product Details | `get_product_details` | SKU |
-| Search Products | `search_products` | Query |
-| Get Related Content | `get_related_content` | SKU |
+| Operation | MCP tool | Required fields | Store |
+| --- | --- | --- | --- |
+| Check Fitment | `check_fitment` | SKU, Year, Make, Model | yes |
+| Get Order Tracking | `get_order_tracking` | Tracking number, or Email and Order number. **API key required** | no |
+| Get Product Availability | `get_product_availability` | SKU | yes |
+| Get Product Details | `get_product_details` | SKU | yes |
+| Get Products For Vehicle | `get_products_for_vehicle` | Year, Make, Model | yes |
+| Get Related Content | `get_related_content` | SKU | yes |
+| Get Vehicles For Product | `get_vehicles_for_product` | SKU | yes |
+| List Vehicle Options | `list_vehicle_options` | Field (`year`, `make`, `model`, `engine`, `trim`, …) | yes |
+| Search Products | `search_products` | Query | yes |
 
-Use **List Vehicle Options** for exact year/make/model/engine/trim spellings before **Get Products For Vehicle**. Trim, engine, and submodel are optional on that operation. If they yield no matches, results fall back to year/make/model.
+Use **List Vehicle Options** for exact year/make/model/engine/trim spellings before **Get Products For Vehicle**. Trim, engine, and submodel are optional. On **Get Products For Vehicle** they fall back to year/make/model when nothing matches. On **Check Fitment** they don't: a trim or engine that doesn't match returns `fits: false`.
+
+An unknown order or tracking number returns `ok: false`.
 
 ## Credentials
 
 Create a **Mishimoto Fits MCP API** credential.
 
 - **MCP URL** defaults to production: `https://mishimoto.com/fits/mcp`
-- **API key** is optional. Leave it blank for anonymous access. If you have a key (`mm_live_…`), the node sends `Authorization: Bearer …`
+- **API key** (`mm_live_…`) comes from the Mishimoto B2B developers page. It's optional for catalog and fitment, and required for **Get Order Tracking**. A key also gets a higher rate limit. The node sends it as `Authorization: Bearer …`
 
 ## Local development
 

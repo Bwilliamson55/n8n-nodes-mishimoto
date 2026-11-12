@@ -11,9 +11,9 @@ import { NodeApiError, NodeOperationError } from 'n8n-workflow';
  *   rpc error: { jsonrpc, id, error: { code, message } }
  *   tools/call result: { content: [{ type: "text", text: "<json>" }], isError? }
  *
- * Public Fits MCP is US catalog and US fitment only for now. No store/region
- * argument. UK fitments are excluded (region != 'gb'). Hostname does not make
- * this a multi-store API.
+ * Catalog and fitment tools take an optional `store` argument (default US,
+ * mishiuk_english, borne_store_view). The hostname and API key are not stores.
+ * get_order_tracking takes no store and needs a Bearer mm_live_ key.
  */
 export function unwrapMcpResponse(response: IDataObject): IDataObject {
 	const rpcError = response.error;

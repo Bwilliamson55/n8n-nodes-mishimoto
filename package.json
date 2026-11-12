@@ -1,13 +1,14 @@
 {
 	"name": "n8n-nodes-mishimoto",
-	"version": "0.1.2",
-	"description": "n8n community node for the public Mishimoto Fits MCP (six read-only fitment/catalog tools)",
+	"version": "0.2.0",
+	"description": "n8n community node for the public Mishimoto Fits MCP (read-only fitment, catalog, availability, and order tracking tools)",
 	"keywords": [
 		"n8n-community-node-package",
 		"mishimoto",
 		"fits",
 		"mcp",
-		"fitment"
+		"fitment",
+		"order-tracking"
 	],
 	"license": "MIT",
 	"homepage": "https://github.com/Bwilliamson55/n8n-nodes-mishimoto",

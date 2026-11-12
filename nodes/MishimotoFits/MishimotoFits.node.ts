@@ -10,22 +10,22 @@ import { compactArgs, fitsToolsCall } from './helpers';
 
 const TOOLS = [
 	{
-		name: 'Get Vehicles For Product',
-		value: 'get_vehicles_for_product',
-		description: 'Vehicles that a SKU fits',
-		action: 'Get vehicles for a product',
+		name: 'Check Fitment',
+		value: 'check_fitment',
+		description: 'Whether a SKU fits a year/make/model (yes/no)',
+		action: 'Check fitment',
 	},
 	{
-		name: 'Get Products For Vehicle',
-		value: 'get_products_for_vehicle',
-		description: 'Products that fit a year/make/model',
-		action: 'Get products for a vehicle',
+		name: 'Get Order Tracking',
+		value: 'get_order_tracking',
+		description: 'Shipment tracking for an order (API key required)',
+		action: 'Get order tracking',
 	},
 	{
-		name: 'List Vehicle Options',
-		value: 'list_vehicle_options',
-		description: 'Valid year/make/model/engine/trim spellings',
-		action: 'List vehicle options',
+		name: 'Get Product Availability',
+		value: 'get_product_availability',
+		description: 'In stock or not, with an ETA when there is one',
+		action: 'Get product availability',
 	},
 	{
 		name: 'Get Product Details',
@@ -34,10 +34,10 @@ const TOOLS = [
 		action: 'Get product details',
 	},
 	{
-		name: 'Search Products',
-		value: 'search_products',
-		description: 'Free-text catalog search',
-		action: 'Search products',
+		name: 'Get Products For Vehicle',
+		value: 'get_products_for_vehicle',
+		description: 'Products that fit a year/make/model',
+		action: 'Get products for a vehicle',
 	},
 	{
 		name: 'Get Related Content',
@@ -45,7 +45,40 @@ const TOOLS = [
 		description: 'Install guides and videos for a SKU',
 		action: 'Get related content',
 	},
+	{
+		name: 'Get Vehicles For Product',
+		value: 'get_vehicles_for_product',
+		description: 'Vehicles that a SKU fits',
+		action: 'Get vehicles for a product',
+	},
+	{
+		name: 'List Vehicle Options',
+		value: 'list_vehicle_options',
+		description: 'Valid year/make/model/engine/trim spellings',
+		action: 'List vehicle options',
+	},
+	{
+		name: 'Search Products',
+		value: 'search_products',
+		description: 'Free-text catalog search',
+		action: 'Search products',
+	},
 ] as const;
+
+/** Every tool except order tracking takes the store argument. */
+const STORE_OPERATIONS = TOOLS.map((tool) => tool.value).filter(
+	(value) => value !== 'get_order_tracking',
+);
+
+const SKU_OPERATIONS = [
+	'check_fitment',
+	'get_product_availability',
+	'get_product_details',
+	'get_related_content',
+	'get_vehicles_for_product',
+];
+
+const VEHICLE_OPERATIONS = ['check_fitment', 'get_products_for_vehicle'];
 
 export class MishimotoFits implements INodeType {
 	description: INodeTypeDescription = {
@@ -55,7 +88,7 @@ export class MishimotoFits implements INodeType {
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"]}}',
-		description: 'US catalog and US fitment only for now (six read-only Fits MCP tools)',
+		description: 'Read-only Mishimoto fitment, catalog, availability, and order tracking (Fits MCP)',
 		defaults: { name: 'Mishimoto Fits' },
 		inputs: ['main'],
 		outputs: ['main'],
@@ -84,6 +117,20 @@ export class MishimotoFits implements INodeType {
 				default: 'get_vehicles_for_product',
 			},
 			{
+				displayName: 'Store',
+				name: 'store',
+				type: 'options',
+				options: [
+					{ name: 'US (Default)', value: 'default' },
+					{ name: 'UK', value: 'mishiuk_english' },
+					{ name: 'Borne', value: 'borne_store_view' },
+				],
+				default: 'default',
+				description:
+					'Store view for catalog, prices, and fitment region. US uses non-gb fitment; UK uses gb fitment.',
+				displayOptions: { show: { operation: STORE_OPERATIONS } },
+			},
+			{
 				displayName: 'SKU',
 				name: 'sku',
 				type: 'string',
@@ -91,15 +138,7 @@ export class MishimotoFits implements INodeType {
 				required: true,
 				placeholder: 'MMINT-CIV-16',
 				description: 'Mishimoto product SKU',
-				displayOptions: {
-					show: {
-						operation: [
-							'get_vehicles_for_product',
-							'get_product_details',
-							'get_related_content',
-						],
-					},
-				},
+				displayOptions: { show: { operation: SKU_OPERATIONS } },
 			},
 			{
 				displayName: 'Year',
@@ -109,7 +148,7 @@ export class MishimotoFits implements INodeType {
 				required: true,
 				description: 'Vehicle model year',
 				typeOptions: { minValue: 1900 },
-				displayOptions: { show: { operation: ['get_products_for_vehicle'] } },
+				displayOptions: { show: { operation: VEHICLE_OPERATIONS } },
 			},
 			{
 				displayName: 'Make',
@@ -119,7 +158,7 @@ export class MishimotoFits implements INodeType {
 				required: true,
 				placeholder: 'Subaru',
 				description: 'Vehicle make. Use List Vehicle Options for the exact spelling.',
-				displayOptions: { show: { operation: ['get_products_for_vehicle'] } },
+				displayOptions: { show: { operation: VEHICLE_OPERATIONS } },
 			},
 			{
 				displayName: 'Model',
@@ -129,23 +168,25 @@ export class MishimotoFits implements INodeType {
 				required: true,
 				placeholder: 'WRX',
 				description: 'Vehicle model. Use List Vehicle Options for the exact spelling.',
-				displayOptions: { show: { operation: ['get_products_for_vehicle'] } },
+				displayOptions: { show: { operation: VEHICLE_OPERATIONS } },
 			},
 			{
 				displayName: 'Trim',
 				name: 'trim',
 				type: 'string',
 				default: '',
-				description: 'Optional vehicle trim. Empty results fall back to year/make/model.',
-				displayOptions: { show: { operation: ['get_products_for_vehicle'] } },
+				description:
+					'Optional vehicle trim. Get Products For Vehicle falls back to year/make/model when it matches nothing; Check Fitment does not.',
+				displayOptions: { show: { operation: VEHICLE_OPERATIONS } },
 			},
 			{
 				displayName: 'Engine',
 				name: 'engine',
 				type: 'string',
 				default: '',
-				description: 'Optional engine designation. Empty results fall back to year/make/model.',
-				displayOptions: { show: { operation: ['get_products_for_vehicle'] } },
+				description:
+					'Optional engine designation. Get Products For Vehicle falls back to year/make/model when it matches nothing; Check Fitment does not.',
+				displayOptions: { show: { operation: VEHICLE_OPERATIONS } },
 			},
 			{
 				displayName: 'Submodel',
@@ -153,7 +194,7 @@ export class MishimotoFits implements INodeType {
 				type: 'string',
 				default: '',
 				description: 'Optional vehicle submodel',
-				displayOptions: { show: { operation: ['get_products_for_vehicle'] } },
+				displayOptions: { show: { operation: VEHICLE_OPERATIONS } },
 			},
 			{
 				displayName: 'Field',
@@ -206,6 +247,53 @@ export class MishimotoFits implements INodeType {
 				placeholder: 'cold air intake',
 				description: 'Free-text catalog search',
 				displayOptions: { show: { operation: ['search_products'] } },
+			},
+			{
+				displayName: 'Look Up By',
+				name: 'trackingLookup',
+				type: 'options',
+				options: [
+					{ name: 'Tracking Number', value: 'trackNo' },
+					{ name: 'Email and Order Number', value: 'emailOrder' },
+				],
+				default: 'emailOrder',
+				description: 'Same inputs as the public /track page. Requires an API key on the credential.',
+				displayOptions: { show: { operation: ['get_order_tracking'] } },
+			},
+			{
+				displayName: 'Tracking Number',
+				name: 'trackNo',
+				type: 'string',
+				default: '',
+				required: true,
+				description: 'Carrier tracking number',
+				displayOptions: {
+					show: { operation: ['get_order_tracking'], trackingLookup: ['trackNo'] },
+				},
+			},
+			{
+				displayName: 'Email',
+				name: 'email',
+				type: 'string',
+				placeholder: 'name@email.com',
+				default: '',
+				required: true,
+				description: 'Email on the order',
+				displayOptions: {
+					show: { operation: ['get_order_tracking'], trackingLookup: ['emailOrder'] },
+				},
+			},
+			{
+				displayName: 'Order Number',
+				name: 'orderRef',
+				type: 'string',
+				default: '',
+				required: true,
+				placeholder: '000123456',
+				description: 'Magento order number (increment ID)',
+				displayOptions: {
+					show: { operation: ['get_order_tracking'], trackingLookup: ['emailOrder'] },
+				},
 			},
 			{
 				displayName: 'Limit',
@@ -272,21 +360,44 @@ export class MishimotoFits implements INodeType {
 }
 
 function toolArgs(ef: IExecuteFunctions, operation: string, itemIndex: number): IDataObject {
+	if (operation === 'get_order_tracking') {
+		const lookup = ef.getNodeParameter('trackingLookup', itemIndex, 'emailOrder') as string;
+		if (lookup === 'trackNo') {
+			return compactArgs({ track_no: ef.getNodeParameter('trackNo', itemIndex, '') as string });
+		}
+		return compactArgs({
+			email: ef.getNodeParameter('email', itemIndex, '') as string,
+			order_ref: ef.getNodeParameter('orderRef', itemIndex, '') as string,
+		});
+	}
+
+	// US is the server default, so 'default' is sent as no store at all.
+	const storeValue = ef.getNodeParameter('store', itemIndex, 'default') as string;
+	const store = storeValue === 'default' ? undefined : storeValue;
+
 	if (operation === 'get_vehicles_for_product') {
 		return compactArgs({
 			sku: ef.getNodeParameter('sku', itemIndex, '') as string,
 			limit: optionalNumber(ef, 'limit', itemIndex),
 			offset: optionalNumber(ef, 'offset', itemIndex),
+			store,
 		});
 	}
-	if (operation === 'get_products_for_vehicle') {
-		return compactArgs({
+	if (operation === 'get_products_for_vehicle' || operation === 'check_fitment') {
+		const vehicle = compactArgs({
 			year: ef.getNodeParameter('year', itemIndex, 2019) as number,
 			make: ef.getNodeParameter('make', itemIndex, '') as string,
 			model: ef.getNodeParameter('model', itemIndex, '') as string,
 			trim: ef.getNodeParameter('trim', itemIndex, '') as string,
 			engine: ef.getNodeParameter('engine', itemIndex, '') as string,
 			submodel: ef.getNodeParameter('submodel', itemIndex, '') as string,
+			store,
+		});
+		if (operation === 'check_fitment') {
+			return { sku: ef.getNodeParameter('sku', itemIndex, '') as string, ...vehicle };
+		}
+		return compactArgs({
+			...vehicle,
 			limit: optionalNumber(ef, 'limit', itemIndex),
 			offset: optionalNumber(ef, 'offset', itemIndex),
 		});
@@ -297,17 +408,24 @@ function toolArgs(ef: IExecuteFunctions, operation: string, itemIndex: number): 
 			year: optionalNumber(ef, 'optionYear', itemIndex),
 			make: ef.getNodeParameter('optionMake', itemIndex, '') as string,
 			model: ef.getNodeParameter('optionModel', itemIndex, '') as string,
+			store,
 		});
 	}
-	if (operation === 'get_product_details' || operation === 'get_related_content') {
+	if (
+		operation === 'get_product_details' ||
+		operation === 'get_related_content' ||
+		operation === 'get_product_availability'
+	) {
 		return compactArgs({
 			sku: ef.getNodeParameter('sku', itemIndex, '') as string,
+			store,
 		});
 	}
 	if (operation === 'search_products') {
 		return compactArgs({
 			query: ef.getNodeParameter('query', itemIndex, '') as string,
 			limit: optionalNumber(ef, 'limit', itemIndex),
+			store,
 		});
 	}
 	return {};
